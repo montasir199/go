@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <style>
+    .logo-text { font-family: 'Tajawal', Arial, sans-serif; font-size: 24px; fill: #2ecc71; }
+  </style>
+  <g transform="translate(40, 30)">
+    <!-- الغزال -->
+    <path d="M60,20 C80,15 95,25 100,40 C105,35 110,25 120,20 C125,18 130,25 125,30 C120,35 115,45 110,50 C115,60 120,80 110,100 C100,120 80,130 60,120 C40,110 30,90 35,70 C40,50 50,30 60,20 Z" fill="#2ecc71"/>
+    <!-- العين -->
+    <circle cx="90" cy="35" r="3" fill="#fff"/>
+    <!-- القرون -->
+    <path d="M60,25 C65,15 70,5 80,0 M85,2 C90,10 95,15 100,15" stroke="#2ecc71" fill="none" stroke-width="3"/>
+  </g>
+  <!-- النص -->
+  <text x="100" y="180" text-anchor="middle" class="logo-text">إدارة المهام</text>
+</svg>
