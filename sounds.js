@@ -26,12 +26,21 @@ document.addEventListener('DOMContentLoaded', function () {
     // مكتبة الأصوات للتنبيهات
     // =========================================
     const NOTIFICATION_SOUNDS = {
-        bell: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3', name: 'جرس', preview: true },
-        chime: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3', name: 'رنين', preview: true },
-        melody: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-happy-bells-notification-937.mp3', name: 'نغمة', preview: true },
-        alert: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-software-interface-alert-2573.mp3', name: 'تنبيه', preview: true },
-        gentle: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-software-interface-remove-2576.mp3', name: 'لطيف', preview: true },
-        ding: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-positive-notification-951.mp3', name: 'رنة', preview: true }
+        bell: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3', name: 'جرس', preview: true, category: 'تنبيهات' },
+        chime: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3', name: 'رنين', preview: true, category: 'تنبيهات' },
+        melody: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-happy-bells-notification-937.mp3', name: 'نغمة', preview: true, category: 'موسيقى' },
+        alert: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-software-interface-alert-2573.mp3', name: 'تنبيه', preview: true, category: 'تنبيهات' },
+        gentle: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-software-interface-remove-2576.mp3', name: 'لطيف', preview: true, category: 'هادئ' },
+        ding: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-positive-notification-951.mp3', name: 'رنة', preview: true, category: 'تنبيهات' },
+        success: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3', name: 'نجاح', preview: true, category: 'إنجاز' },
+        complete: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-achievement-completed-2068.mp3', name: 'إكمال', preview: true, category: 'إنجاز' }
+    };
+
+    // تخزين تفضيلات الصوت
+    let soundPreferences = JSON.parse(localStorage.getItem('soundPreferences')) || {
+        defaultVolume: 0.7,
+        defaultSound: 'bell',
+        muteAll: false
     };
 
     // =========================================
@@ -112,11 +121,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // دالة تشغيل صوت معاينة
     function previewSound(soundId) {
+        if (soundPreferences.muteAll) {
+            showNotification('الأصوات مكتومة حالياً', 'info');
+            return;
+        }
+
         const sound = NOTIFICATION_SOUNDS[soundId];
         if (sound && sound.preview) {
             const audio = new Audio(sound.url);
-            audio.volume = 0.5; // مستوى صوت معتدل للمعاينة
-            audio.play().catch(error => console.error('خطأ في تشغيل صوت المعاينة:', error));
+            audio.volume = soundPreferences.defaultVolume;
+            
+            // إضافة مؤثرات صوتية
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioContext.createMediaElementSource(audio);
+            const gainNode = audioContext.createGain();
+            const panNode = audioContext.createStereoPanner();
+            
+            source.connect(gainNode);
+            gainNode.connect(panNode);
+            panNode.connect(audioContext.destination);
+            
+            // تطبيق مؤثرات الصوت
+            gainNode.gain.value = soundPreferences.defaultVolume;
+            panNode.pan.value = 0; // توازن الصوت في الوسط
+            
+            audio.play()
+                .then(() => console.log(`تشغيل صوت المعاينة: ${soundId}`))
+                .catch(error => {
+                    console.error('خطأ في تشغيل صوت المعاينة:', error);
+                    showNotification('تعذر تشغيل الصوت', 'error');
+                });
         }
     }
 
@@ -868,9 +902,19 @@ document.addEventListener('DOMContentLoaded', function () {
         editItemId = null;
         taskForm.reset(); // إعادة تعيين حقول النموذج
         addTaskBtn.textContent = 'إضافة مهمة'; // استعادة نص الزر الأصلي
-         // إعادة تعيين أي قيم افتراضية أخرى قد لا يعيدها reset()
-         colorInput.value = '#ffffff';
-         priorityInput.value = 'low';
+        // إعادة تعيين أي قيم افتراضية أخرى قد لا يعيدها reset()
+        colorInput.value = '#ffffff';
+        priorityInput.value = 'low';
+        
+        // إزالة أي معلومات تذكير إضافية
+        const reminderManageBtn = taskForm.querySelector('.reminder-manage-btn');
+        if (reminderManageBtn) {
+            reminderManageBtn.remove();
+        }
+        const reminderInfo = taskForm.querySelector('.reminder-info');
+        if (reminderInfo) {
+            reminderInfo.remove();
+        }
     }
 
 
