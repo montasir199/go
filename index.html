@@ -97,8 +97,23 @@
             padding: 25px;
             width: 100%;
             max-width: 800px;
-            margin-top: 20px; /* إضافة هامش علوي */
+            margin-top: 20px;
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .app-logo {
+            width: 120px;
+            height: 120px;
+            transition: transform 0.3s ease;
+        }
+
+        .app-logo:hover {
+            transform: scale(1.05);
         }
 
 
@@ -743,6 +758,9 @@
 <body>
 
     <div class="container">
+        <div class="logo-container">
+            <img src="logo.svg" alt="شعار إدارة المهام" class="app-logo">
+        </div>
         <h1><i class="fas fa-tasks"></i> قائمة المهام اليومية</h1>
 
         <form id="task-form">
