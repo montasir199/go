@@ -1,15 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
-  <style>
-    .logo-text { font-family: 'Tajawal', Arial, sans-serif; font-size: 24px; fill: #2ecc71; }
-  </style>
-  <g transform="translate(40, 30)">
-    <!-- الغزال -->
-    <path d="M60,20 C80,15 95,25 100,40 C105,35 110,25 120,20 C125,18 130,25 125,30 C120,35 115,45 110,50 C115,60 120,80 110,100 C100,120 80,130 60,120 C40,110 30,90 35,70 C40,50 50,30 60,20 Z" fill="#2ecc71"/>
-    <!-- العين -->
-    <circle cx="90" cy="35" r="3" fill="#fff"/>
-    <!-- القرون -->
-    <path d="M60,25 C65,15 70,5 80,0 M85,2 C90,10 95,15 100,15" stroke="#2ecc71" fill="none" stroke-width="3"/>
-  </g>
-  <!-- النص -->
-  <text x="100" y="180" text-anchor="middle" class="logo-text">إدارة المهام</text>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <!-- خلفية متدرجة -->
+    <defs>
+        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ee7752"/>
+            <stop offset="33%" style="stop-color:#e73c7e"/>
+            <stop offset="66%" style="stop-color:#23a6d5"/>
+            <stop offset="100%" style="stop-color:#23d5ab"/>
+        </linearGradient>
+    </defs>
+    
+    <!-- دائرة الخلفية -->
+    <circle cx="60" cy="60" r="50" fill="url(#gradient)" opacity="0.9"/>
+    
+    <!-- علامة الصح -->
+    <path d="M40 60 L55 75 L85 45" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <animate attributeName="stroke-dasharray" from="0,150" to="150,150" dur="1.5s" fill="freeze"/>
+    </path>
+    
+    <!-- تأثير الإضاءة -->
+    <circle cx="60" cy="60" r="45" stroke="white" stroke-width="2" fill="none" opacity="0.3">
+        <animate attributeName="r" values="45;48;45" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite"/>
+    </circle>
 </svg>
