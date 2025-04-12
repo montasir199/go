@@ -230,20 +230,45 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function deleteTask(taskId) {
-        if (confirm('هل أنت متأكد من حذف هذه المهمة؟')) {
+        // تعطيل زر الحذف لمنع النقر المتكرر
+        const taskElement = document.querySelector(`[data-id="${taskId}"]`);
+        const deleteBtn = taskElement.querySelector('.delete-btn');
+        deleteBtn.disabled = true;
+
+        // عرض رسالة تأكيد مع تفاصيل المهمة
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) {
+            deleteBtn.disabled = false;
+            return;
+        }
+
+        if (confirm(`هل أنت متأكد من حذف المهمة التالية؟\n\n${task.text}`)) {
             tasks = tasks.filter(t => t.id !== taskId);
             saveTasks();
             renderTasks();
             showNotification('تم حذف المهمة بنجاح', 'success');
+        } else {
+            deleteBtn.disabled = false;
         }
     }
 
     function editTask(taskId) {
+        // تعطيل زر التعديل لمنع النقر المتكرر
+        const taskElement = document.querySelector(`[data-id="${taskId}"]`);
+        const editBtn = taskElement.querySelector('.edit-btn');
+        editBtn.disabled = true;
+
         const task = tasks.find(t => t.id === taskId);
         if (!task) {
             showNotification('لم يتم العثور على المهمة', 'error');
+            editBtn.disabled = false;
             return;
         }
+
+        // تعطيل جميع أزرار التعديل الأخرى
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.disabled = true;
+        });
 
         elements.taskInput.value = task.text;
         elements.reminderInput.value = task.reminder || '';
