@@ -68,6 +68,9 @@ body {
     );
     background-size: 400% 400%;
     animation: gradientAnimation var(--animation-duration) ease infinite;
+    color: var(--text-color);
+    line-height: 1.6;
+    transition: background-color 0.3s ease;
 }
 
 @keyframes gradientAnimation {
@@ -87,13 +90,14 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.7);
     display: flex;
     justify-content: center;
     align-items: center;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(5px);
     z-index: 1000;
 }
 
@@ -134,7 +138,9 @@ body {
     max-width: 600px;
     box-shadow: var(--container-shadow);
     position: relative;
-    animation: slideIn 0.3s ease;
+    animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid var(--reminder-border-color);
+    transform-origin: center;
 }
 
 .reminder-dialog h3 {
@@ -280,7 +286,7 @@ body.dark-mode {
 }
 
 body {
-    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background: linear-gradient(-45deg, var(--background-gradient-1), var(--background-gradient-2), var(--background-gradient-3));
     background-size: 400% 400%;
     animation: gradientBG 15s ease infinite;
     min-height: 100vh;
@@ -290,6 +296,9 @@ body {
     justify-content: center;
     align-items: center;
     overflow-x: hidden;
+    color: var(--text-color);
+    line-height: 1.6;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes gradientBG {
@@ -305,14 +314,16 @@ body {
 }
 
 .container {
-    background-color: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(15px);
     border-radius: var(--border-radius);
     box-shadow: var(--container-shadow);
     padding: 2rem;
     width: 100%;
     max-width: 800px;
-    transition: var(--transition);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transform-origin: center;
 }
 
 .container:hover {
@@ -338,7 +349,10 @@ body {
     padding: 1.5rem;
     border-radius: var(--border-radius);
     box-shadow: var(--container-shadow);
-    transition: var(--transition);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
 }
 
 .task-controls:hover {
