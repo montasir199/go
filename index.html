@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قائمة المهام اليومية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <style>
+        #particles-js {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        :root { /* إضافة متغيرات CSS */
+            --primary-color: #3498db;
+            --primary-hover-color: #2980b9;
+            --secondary-color: #f8f9fa;
+            --secondary-hover-color: #e9ecef;
+            --text-color: #2c3e50;
+            --border-color: #e0e6ed;
+            --border-radius-md: 8px;
+            --border-radius-lg: 15px;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --focus-shadow-color: rgba(52, 152, 219, 0.2);
+            --delete-hover-bg: #fdecea;
+            --delete-hover-color: #e74c3c;
+            --edit-hover-bg: #ebf5fb;
+            --edit-hover-color: #3498db;
+            --reminder-hover-bg: #f5e6fd;
+            --reminder-hover-color: #9b59b6;
+            --priority-high-color: #e74c3c;
+            --priority-medium-color: #f39c12;
+            --priority-low-color: #2ecc71;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --info-color: #3498db;
+            --warning-color: #f39c12;
+            --disabled-color: #95a5a6;
+            --completed-text-color: #95a5a6;
+            --tag-bg-color: #e0e6ed;
+            --reminder-text-color: #7f8c8d;
+            --dialog-overlay-color: rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            position: relative;
+            z-index: 1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* تغيير إلى flex-start للسماح بالإشعارات في الأعلى */
+            padding: 20px;
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius-lg);
+            box-shadow: 0 10px 30px var(--shadow-color);
+            padding: 25px;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px; /* إضافة هامش علوي */
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+
+
+        h1 {
+            color: var(--text-color);
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        h1 i { /* تنسيق الأيقونة في العنوان */
+            margin-left: 10px;
+            color: var(--primary-color);
+        }
+
+        #task-form {
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: grid;
+            /* تحسين التقسيم ليكون أكثر مرونة */
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* تقسيم تلقائي مرن */
+            gap: 10px;
+            margin-bottom: 15px; /* تقليل الهامش السفلي قليلاً */
+        }
+        .input-group-secondary { /* مجموعة الحقول الثانوية (اللون والعلامات) */
+             display: flex;
+             gap: 10px;
+             align-items: center; /* محاذاة رأسية */
+             margin-bottom: 20px;
+        }
+
+
+        /* إزالة التقسيم الشبكي المعقد في الشاشات الصغيرة */
+        @media (max-width: 768px) {
+            .input-group, .input-group-secondary {
+                grid-template-columns: 1fr; /* عمود واحد */
+            }
+            .input-group-secondary input[type="color"] {
+                 width: 100%; /* جعل اللون يأخذ عرض كامل */
+                 height: 45px;
+            }
+        }
+
+        input[type="text"],
+        input[type="datetime-local"],
+        select,
+        textarea { /* إضافة textarea هنا */
+            padding: 12px 15px;
+            border: 1px solid var(--border-color); /* تقليل سمك الحد قليلاً */
+            border-radius: var(--border-radius-md);
+            font-size: 16px;
+            transition: all 0.3s;
+            width: 100%; /* تأكد من أن العناصر تأخذ العرض الكامل داخل Grid/Flex */
+            background-color: #fff; /* ضمان خلفية بيضاء */
+        }
+         input[type="color"] {
+             padding: 5px; /* حشوة أقل للون */
+             height: 45px; /* ارتفاع متناسق */
+             min-width: 50px; /* عرض أدنى */
+             border: 1px solid var(--border-color);
+             border-radius: var(--border-radius-md);
+             cursor: pointer;
+         }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--focus-shadow-color);
+        }
+
+        button {
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            border-radius: var(--border-radius-md);
+            font-weight: 600;
+            padding: 12px 20px; /* توحيد الحشوة الافتراضية */
+             font-size: 16px;
+        }
+         button:disabled { /* تنسيق الأزرار المعطلة */
+             background-color: var(--disabled-color);
+             cursor: not-allowed;
+             opacity: 0.7;
+         }
+
+        .add-btn { /* زر الإضافة/التحديث الرئيسي */
+            background-color: var(--primary-color);
+            color: white;
+            grid-column: span 1; /* تأكد من أنه يشغل عمود واحد في الشبكة */
+        }
+
+        .add-btn:hover:not(:disabled) {
+            background-color: var(--primary-hover-color);
+        }
+
+        .add-btn.edit-mode {
+            background-color: var(--warning-color);
+        }
+
+        .add-btn.edit-mode:hover:not(:disabled) {
+            background-color: #d35400; /* لون أغمق للتحذير */
+        }
+
+        #search-input { /* جعل حقل البحث يأخذ عرض كامل */
+             width: 100%;
+             margin-bottom: 20px;
+        }
+
+        .task-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap; /* السماح بالالتفاف */
+            gap: 15px; /* مسافة بين المجموعات */
+        }
+
+        .filters, .actions { /* تقسيم عناصر التحكم إلى مجموعتين */
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap; /* السماح بالالتفاف داخل كل مجموعة */
+        }
+
+        .action-btn, .filters select { /* تنسيق موحد لأزرار الإجراءات وقوائم الفرز */
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            display: inline-flex; /* استخدام inline-flex */
+            align-items: center;
+            gap: 8px;
+            font-size: 14px; /* تصغير الخط قليلاً */
+            font-weight: 500;
+        }
+        .action-btn i { /* أيقونات أزرار الإجراءات */
+            color: var(--primary-color);
+        }
+
+        .action-btn:hover:not(:disabled), .filters select:hover {
+            background-color: var(--secondary-hover-color);
+        }
+
+        #task-list {
+            list-style: none;
+            margin-top: 20px; /* إضافة مسافة فوق القائمة */
+        }
+         /* رسالة عند عدم وجود مهام */
+         .empty-list-message {
+             text-align: center;
+             color: var(--disabled-color);
+             padding: 20px;
+             font-style: italic;
+         }
+
+        .task-item {
+            background-color: white;
+            border-radius: var(--border-radius-md);
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            /* استخدام الحد الأيسر للإشارة للأولوية */
+            border-left: 5px solid var(--primary-color); /* لون افتراضي */
+            transition: all 0.3s ease; /* انتقال أنعم */
+            gap: 10px; /* مسافة بين المحتوى والأزرار */
+        }
+        .task-item:hover { /* تأثير بسيط عند المرور */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .task-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-grow: 1;
+            /* للسماح بتقسيم النص الطويل */
+            overflow: hidden; /* لمنع تجاوز النص */
+            word-break: break-word; /* لتقسيم الكلمات الطويلة */
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            flex-shrink: 0; /* منع الانكماش */
+             accent-color: var(--primary-color); /* تغيير لون علامة الصح */
+        }
+
+        .task-text-wrapper { /* حاوية للنص، الوسوم، التذكير */
+            flex-grow: 1;
+        }
+
+        .task-text {
+            font-size: 16px;
+             display: block; /* جعل النص يأخذ سطر خاص */
+             margin-bottom: 5px; /* مسافة بسيطة تحت النص */
+        }
+
+
+        .task-actions {
+            display: flex;
+            gap: 12px;
+            flex-shrink: 0;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .task-item:hover .task-actions {
+            opacity: 1;
+        }
+
+        .delete-btn, .edit-btn, .reminder-btn { /* تنسيق موحد لأزرار الأيقونات */
+            width: 36px;
+            height: 36px;
+            border-radius: 50%; /* دائري */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--secondary-color);
+            color: var(--reminder-text-color); /* لون أيقونة افتراضي */
+            border: 1px solid var(--border-color); /* إضافة حد خفيف */
+            padding: 0; /* إزالة الحشوة الافتراضية */
+            font-size: 14px; /* حجم الأيقونة */
+             line-height: 1; /* منع أي ارتفاع سطر إضافي */
+        }
+
+        .delete-btn:hover:not(:disabled) {
+            background-color: var(--delete-hover-bg);
+            color: var(--delete-hover-color);
+             border-color: var(--delete-hover-color);
+        }
+
+        .edit-btn:hover:not(:disabled) {
+            background-color: var(--edit-hover-bg);
+            color: var(--edit-hover-color);
+             border-color: var(--edit-hover-color);
+        }
+
+        .reminder-btn:hover:not(:disabled) {
+            background-color: var(--reminder-hover-bg);
+            color: var(--reminder-hover-color);
+             border-color: var(--reminder-hover-color);
+        }
+         .reminder-btn.active { /* تمييز زر التذكير إذا كان هناك تذكير نشط */
+             color: var(--reminder-hover-color);
+             border-color: var(--reminder-hover-color);
+             background-color: var(--reminder-hover-bg);
+         }
+
+        .task-item.task-completed { /* تنسيق المهام المكتملة */
+             opacity: 0.7;
+             background-color: #f9f9f9; /* خلفية أفتح */
+             border-left-color: var(--disabled-color); /* تغيير لون الحد الأيسر */
+        }
+        .task-completed .task-text {
+            text-decoration: line-through;
+            color: var(--completed-text-color);
+        }
+        .task-completed .task-tags .task-tag { /* جعل الوسوم باهتة أيضاً */
+            opacity: 0.6;
+        }
+        .task-completed .reminder-time { /* جعل التذكير باهت */
+             text-decoration: line-through;
+             color: var(--completed-text-color);
+        }
+
+
+        /* تطبيق ألوان الحد الأيسر حسب الأولوية */
+        .task-item.priority-high { border-left-color: var(--priority-high-color); }
+        .task-item.priority-medium { border-left-color: var(--priority-medium-color); }
+        .task-item.priority-low { border-left-color: var(--priority-low-color); }
+
+        /* تنسيقات الإشعارات المحسنة */
+        .notification {
+            position: fixed;
+            bottom: 20px; /* تغيير إلى الأسفل */
+            left: 50%; /* توسيط أفقي */
+            transform: translateX(-50%) translateY(150%); /* البدء من الأسفل */
+            max-width: 400px;
+            width: calc(100% - 40px); /* عرض جيد في الموبايل */
+            padding: 15px 20px;
+            border-radius: var(--border-radius-md);
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            opacity: 0;
+            transition: transform 0.4s ease-out, opacity 0.4s ease-out; /* انتقالات أنعم */
+             display: flex; /* للسماح بالأيقونات */
+             align-items: center;
+             gap: 10px;
+        }
+        .notification i { /* أيقونة الإشعار */
+             font-size: 1.2em;
+        }
+
+        .notification.show { /* حالة الظهور */
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .notification.success { background-color: var(--success-color); }
+        .notification.error { background-color: var(--error-color); }
+        .notification.info { background-color: var(--info-color); }
+        .notification.warning { background-color: var(--warning-color); }
+
+         /* تحريك للخروج (اختياري، يمكن استخدامه مع JS) */
+         .notification.fade-out {
+             opacity: 0;
+             transform: translateX(-50%) translateY(20px); /* تحريك للأسفل قليلاً عند الاختفاء */
+         }
+
+
+        /* تنسيقات مربع حوار التذكيرات */
+        .dialog-overlay { /* الطبقة المعتمة للخلفية */
+             position: fixed;
+             top: 0;
+             left: 0;
+             right: 0;
+             bottom: 0;
+             background-color: var(--dialog-overlay-color);
+             display: flex;
+             justify-content: center;
+             align-items: center;
+             z-index: 2000;
+             opacity: 0; /* للتحريك */
+             transition: opacity 0.3s ease;
+         }
+         .dialog-overlay.show { /* حالة الظهور */
+             opacity: 1;
+         }
+
+        .reminder-dialog-content { /* المحتوى الفعلي للمربع */
+            background-color: white;
+            border-radius: var(--border-radius-md);
+            padding: 25px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: scale(0.9); /* للتحريك */
+            transition: transform 0.3s ease;
+        }
+        .dialog-overlay.show .reminder-dialog-content { /* حالة الظهور */
+             transform: scale(1);
+        }
+
+
+        .reminder-dialog-content h3 { /* استخدام h3 بدلاً من h2 */
+            margin-bottom: 20px;
+            color: var(--text-color);
+             text-align: center;
+             font-size: 20px;
+        }
+
+        .reminder-options { /* حاوية خيارات التذكير */
+             max-height: 60vh; /* تحديد ارتفاع أقصى للسماح بالتمرير */
+             overflow-y: auto; /* إضافة شريط تمرير عمودي عند الحاجة */
+             padding-right: 10px; /* مسافة لشريط التمرير */
+        }
+
+        .reminder-option {
+            margin-bottom: 15px;
+        }
+
+        .reminder-option label {
+            display: block;
+            margin-bottom: 8px; /* زيادة المسافة قليلاً */
+            font-weight: 500;
+             font-size: 14px; /* تصغير الخط قليلاً */
+        }
+        .reminder-option input, .reminder-option select, .reminder-option textarea {
+             width: 100%; /* تأكد من أن الحقول تأخذ العرض الكامل */
+        }
+         .reminder-option textarea { /* تنسيق خاص لـ textarea */
+             resize: vertical; /* السماح بالتغيير الرأسي فقط */
+             min-height: 60px;
+         }
+         .volume-control label { /* تنسيق خاص لمؤشر الصوت */
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+         }
+
+        .dialog-actions { /* تعديل اسم الكلاس ليكون أوضح */
+            display: flex;
+            justify-content: space-between; /* توزيع الأزرار */
+            gap: 10px;
+            margin-top: 25px;
+             padding-top: 15px; /* إضافة مسافة فوق الأزرار */
+             border-top: 1px solid var(--border-color); /* خط فاصل */
+        }
+
+        .dialog-actions button {
+            padding: 10px 20px;
+             font-size: 14px;
+        }
+
+        .dialog-actions .btn-danger { /* زر المسح */
+             background-color: var(--error-color);
+             color: white;
+             margin-left: 0; /* إزالة الهامش الأيسر التلقائي */
+         }
+         .dialog-actions .btn-danger:hover {
+              background-color: #c0392b; /* درجة أغمق */
+          }
+         .dialog-actions .btn-secondary { /* زر الإلغاء */
+             background-color: var(--secondary-color);
+             color: var(--text-color);
+             border: 1px solid var(--border-color);
+          }
+          .dialog-actions .btn-secondary:hover {
+              background-color: var(--secondary-hover-color);
+          }
+          .dialog-actions .btn-primary { /* زر الحفظ */
+              background-color: var(--primary-color);
+              color: white;
+           }
+           .dialog-actions .btn-primary:hover {
+               background-color: var(--primary-hover-color);
+           }
+
+
+        /* تنسيقات مجموعات المهام */
+        .task-group {
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            background-color: #fff;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .task-group:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-group-header {
+            background-color: var(--secondary-color);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s ease;
+        }
+
+        .task-group-header:hover {
+            background-color: var(--secondary-hover-color);
+        }
+         .task-group-header::after { /* مؤشر الطي (سهم) */
+             content: '\f078'; /* Font Awesome down arrow */
+             font-family: 'Font Awesome 6 Free';
+             font-weight: 900;
+             margin-right: 10px;
+             transition: transform 0.3s ease;
+         }
+         .task-group.collapsed .task-group-header::after { /* تغيير السهم عند الطي */
+             transform: rotate(-90deg); /* تدوير لليسار في RTL */
+         }
+
+
+        .task-group-header h3 {
+            color: var(--text-color);
+            font-size: 18px;
+            margin: 0; /* إزالة الهامش الافتراضي */
+        }
+
+        .task-count {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 3px 10px; /* زيادة الحشوة قليلاً */
+            border-radius: 12px; /* زيادة دائرية الحواف */
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+         .task-group-list { /* قائمة المهام داخل المجموعة */
+             padding: 0; /* إزالة الحشوة الافتراضية */
+             margin: 0; /* إزالة الهامش الافتراضي */
+             max-height: 1000px; /* قيمة كبيرة للسماح بالمحتوى */
+             transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out; /* تحريك الطي */
+         }
+         .task-group-list .task-item { /* تنسيق العناصر داخل المجموعة */
+             border-left: none; /* إزالة الحد الأيسر */
+             border-bottom: 1px solid var(--border-color); /* إضافة حد سفلي فاصل */
+             margin-bottom: 0; /* إزالة الهامش السفلي */
+             border-radius: 0; /* إزالة دائرية الحواف */
+             box-shadow: none; /* إزالة الظل */
+             padding: 12px 15px; /* تعديل الحشوة */
+         }
+         .task-group-list .task-item:last-child {
+             border-bottom: none; /* إزالة الحد السفلي لآخر عنصر */
+         }
+
+         .task-group.collapsed .task-group-list { /* إخفاء القائمة عند الطي */
+             max-height: 0;
+             padding: 0; /* إزالة الحشوة عند الطي */
+             overflow: hidden;
+         }
+
+
+        /* تنسيقات الوسوم والتذكير داخل المهمة */
+        .task-details { /* حاوية إضافية للوسوم والتذكير */
+            display: flex;
+            flex-wrap: wrap; /* السماح بالالتفاف */
+            gap: 5px 15px; /* مسافات رأسية وأفقية */
+            margin-top: 8px; /* مسافة فوق التفاصيل */
+            width: 100%; /* جعلها تأخذ العرض الكامل تحت النص */
+        }
+
+        .task-tags {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            /* margin-top: 0; إزالته لأنه الآن داخل .task-details */
+        }
+
+        .task-tag {
+            background-color: var(--tag-bg-color);
+            color: var(--text-color);
+             opacity: 0.8;
+            padding: 3px 8px; /* تعديل الحشوة */
+            border-radius: var(--border-radius-md); /* استخدام نفس دائرية الحواف */
+            font-size: 12px; /* تصغير الخط */
+            font-weight: 500;
+        }
+
+        .reminder-time {
+            font-size: 12px;
+            color: var(--reminder-text-color);
+            /* margin-right: 0; إزالته لأنه الآن داخل flex container */
+             display: inline-flex; /* للسماح بالأيقونة */
+             align-items: center;
+             gap: 5px;
+             white-space: nowrap; /* منع كسر الوقت */
+        }
+        .reminder-time i { /* أيقونة الساعة */
+             font-size: 1.1em;
+        }
+
+        .reminder-soon {
+            color: var(--priority-high-color) !important; /* استخدام لون الأولوية العالية */
+            font-weight: bold;
+        }
+         .reminder-past { /* تذكير فات وقته */
+            color: var(--disabled-color) !important;
+            text-decoration: line-through;
+         }
+         .reminder-repeat { /* نص التكرار */
+             font-style: italic;
+             margin-right: 5px; /* إضافة مسافة قبل نص التكرار */
+         }
+
+        /* تعديلات للشاشات الصغيرة جداً */
+        @media (max-width: 480px) {
+            body {
+                 padding: 10px;
+            }
+            .container {
+                padding: 15px;
+                margin-top: 10px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+             button, .action-btn, .filters select {
+                 font-size: 14px;
+                 padding: 8px 12px;
+            }
+            .filters, .actions {
+                 flex-direction: column; /* جعل الفلاتر والأزرار عمودية */
+                 width: 100%;
+                 align-items: stretch; /* جعلها تتمدد */
+             }
+             .filters select {
+                 width: 100%;
+             }
+
+            .task-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .task-actions {
+                align-self: flex-end; /* وضع الأزرار في النهاية اليمنى */
+                margin-top: 10px;
+            }
+             .task-details { /* تعديل عرض التفاصيل في الشاشات الصغيرة */
+                 flex-direction: column;
+                 align-items: flex-start;
+                 gap: 5px;
+             }
+             .reminder-dialog-content {
+                 padding: 15px;
+             }
+             .dialog-actions {
+                 flex-direction: column;
+             }
+             .dialog-actions button {
+                 width: 100%;
+             }
+             .dialog-actions .btn-danger {
+                 order: 1; /* وضع زر المسح في النهاية */
+             }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: '#ffffff' },
+                    shape: { type: 'circle' },
+                    opacity: { value: 0.5, random: false },
+                    size: { value: 3, random: true },
+                    line_linked: { enable: true, distance: 150, color: '#ffffff', opacity: 0.4, width: 1 },
+                    move: { enable: true, speed: 2, direction: 'none', random: false, straight: false, out_mode: 'out', bounce: false }
+                },
+                interactivity: {
+                    detect_on: 'canvas',
+                    events: { onhover: { enable: true, mode: 'repulse' }, onclick: { enable: true, mode: 'push' }, resize: true },
+                    modes: { repulse: { distance: 100, duration: 0.4 }, push: { particles_nb: 4 } }
+                },
+                retina_detect: true
+            });
+        });
+    </script>
+<body>
+
+    <div class="container">
+        <h1><i class="fas fa-tasks"></i> قائمة المهام اليومية</h1>
+
+        <form id="task-form">
+            <div class="input-group">
+                <input type="text" id="task-input" placeholder="أدخل مهمة جديدة..." required aria-label="نص المهمة">
+                <select id="priority-input" aria-label="الأولوية">
+                    <option value="low">أولوية منخفضة</option>
+                    <option value="medium" selected>أولوية متوسطة</option>
+                    <option value="high">أولوية عالية</option>
+                </select>
+                <button type="submit" id="add-task-btn" class="add-btn">
+                     <i class="fas fa-plus"></i> إضافة
+                 </button>
+                 <button type="button" id="cancel-edit-btn" class="btn-secondary" style="display: none;">
+                     <i class="fas fa-times"></i> إلغاء التعديل
+                 </button>
+            </div>
+            <div class="input-group-secondary">
+                <input type="color" id="color-input" value="#ffffff" title="اختر لون الخلفية للمهمة" aria-label="لون المهمة">
+                <input type="text" id="tags-input" placeholder="الوسوم (مفصولة بفواصل ,)..." aria-label="الوسوم">
+            </div>
+        </form>
+
+         <input type="text" id="search-input" placeholder="ابحث عن المهام (بالنص، الوسم، الأولوية، التاريخ)..." aria-label="بحث في المهام" style="width: 100%; margin-bottom: 20px;">
+
+        <div class="task-controls">
+            <div class="filters">
+                 <label for="filter-select" class="sr-only">فلترة حسب:</label> {/* Accessibility */}
+                <label for="filter-select" class="sr-only">تصفية المهام حسب الحالة</label>
+                <select id="filter-select" aria-label="تصفية المهام حسب الحالة" title="اختر حالة المهام التي تريد عرضها">
+                    <option value="all">عرض جميع المهام</option>
+                    <option value="active">المهام النشطة فقط</option>
+                    <option value="completed">المهام المكتملة فقط</option>
+                    <option value="withReminder">المهام مع تذكيرات نشطة</option>
+                </select>
+
+                <label for="filter-priority-select" class="sr-only">تصفية المهام حسب الأولوية</label>
+                <select id="filter-priority-select" aria-label="تصفية المهام حسب الأولوية" title="اختر مستوى الأولوية للمهام التي تريد عرضها">
+                    <option value="all">جميع مستويات الأولوية</option>
+                    <option value="low">أولوية منخفضة</option>
+                    <option value="medium">أولوية متوسطة</option>
+                    <option value="high">أولوية عالية</option>
+                </select>
+
+                <label for="sort-select" class="sr-only">ترتيب المهام</label>
+                <select id="sort-select" aria-label="ترتيب المهام" title="اختر طريقة ترتيب المهام">
+                    <option value="date">ترتيب حسب تاريخ الإضافة (الأحدث أولاً)</option>
+                    <option value="priority">ترتيب حسب الأولوية (الأعلى أولاً)</option>
+                    <option value="alphabetical">ترتيب أبجدي حسب النص</option>
+                    <option value="reminder">ترتيب حسب موعد التذكير (الأقرب أولاً)</option>
+                    <option value="status">ترتيب حسب الحالة (النشطة أولاً)</option>
+                </select>
+
+                <label for="group-select" class="sr-only">تجميع المهام</label>
+                <select id="group-select" aria-label="تجميع المهام" title="اختر طريقة تجميع المهام">
+                    <option value="none">عرض بدون تجميع</option>
+                    <option value="priority">تجميع حسب مستوى الأولوية</option>
+                    <option value="date">تجميع حسب تاريخ الإضافة</option>
+                    <option value="tags">تجميع حسب الوسوم</option>
+                    <option value="reminder">تجميع حسب حالة التذكير</option>
+                    <option value="status">تجميع حسب حالة الإكمال</option>
+                </select>
+            </div>
+
+            <div class="actions">
+                <button type="button" id="export-btn" class="action-btn">
+                    <i class="fas fa-file-export"></i> تصدير
+                </button>
+                <button type="button" id="import-btn" class="action-btn">
+                    <i class="fas fa-file-import"></i> استيراد
+                </button>
+                <input type="file" id="import-input" accept=".json" style="display: none;" aria-label="ملف استيراد المهام">
+            </div>
+        </div>
+
+        <ul id="task-list">
+             <p class="empty-list-message">جارٍ تحميل المهام...</p>
+        </ul>
+    </div>
+
+    <template id="task-template">
+        <li class="task-item">
+            <div class="task-content">
+                <input type="checkbox" class="task-checkbox" aria-label="إكمال المهمة">
+                <div class="task-text-wrapper">
+                     <span class="task-text"></span>
+                     <div class="task-details">
+                         <div class="task-tags"></div>
+                         </div>
+                 </div>
+            </div>
+            <div class="task-actions">
+                <button type="button" class="reminder-btn btn-icon" title="إدارة التذكير"><i class="fas fa-bell"></i></button>
+                <button type="button" class="edit-btn btn-icon" title="تعديل المهمة"><i class="fas fa-edit"></i></button>
+                <button type="button" class="delete-btn btn-icon" title="حذف المهمة"><i class="fas fa-trash"></i></button>
+            </div>
+        </li>
+    </template>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // =========================================
+            // تهيئة المتغيرات وعناصر DOM
+            // =========================================
+            const taskForm = document.getElementById('task-form');
+            const taskInput = document.getElementById('task-input');
+            // const reminderInput = document.getElementById('reminder-input'); // تمت إزالته من النموذج الرئيسي
+            const priorityInput = document.getElementById('priority-input');
+            const colorInput = document.getElementById('color-input');
+            const tagsInput = document.getElementById('tags-input');
+            const taskList = document.getElementById('task-list');
+            const searchInput = document.getElementById('search-input');
+            const filterSelect = document.getElementById('filter-select');
+            const sortSelect = document.getElementById('sort-select');
+            const groupSelect = document.getElementById('group-select');
+            const filterPrioritySelect = document.getElementById('filter-priority-select'); // فلتر الأولوية
+            const exportBtn = document.getElementById('export-btn');
+            const importInput = document.getElementById('import-input');
+            const importBtn = document.getElementById('import-btn'); // زر الاستيراد
+            const taskTemplate = document.getElementById('task-template');
+            const addTaskBtn = document.getElementById('add-task-btn');
+            const cancelEditBtn = document.getElementById('cancel-edit-btn');
+
+            let tasks = []; // سيتم تحميلها لاحقًا
+            let editingTaskId = null; // لتتبع المهمة التي يتم تعديلها
+            let activeReminders = new Map(); // لتتبع مؤقتات التذكير النشطة { taskId: timerId }
+
+            // =========================================
+            // مكتبة الأصوات للتنبيهات (من النسخة السابقة)
+            // =========================================
+             const NOTIFICATION_SOUNDS = {
+                 bell: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3', name: 'جرس', preview: true },
+                 chime: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3', name: 'رنين', preview: true },
+                 melody: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-happy-bells-notification-937.mp3', name: 'نغمة', preview: true },
+                 alert: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-software-interface-alert-2573.mp3', name: 'تنبيه', preview: true },
+                 gentle: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-software-interface-remove-2576.mp3', name: 'لطيف', preview: true },
+                 ding: { url: 'https://assets.mixkit.co/sfx/preview/mixkit-positive-notification-951.mp3', name: 'رنة', preview: true }
+             };
+
+
+            // =========================================
+            // دالة حفظ المهام (من النسخة السابقة)
+            // =========================================
+            // دالة لحفظ المهام في التخزين المحلي
+            // ملاحظة: تقوم هذه الدالة بتنظيف والتحقق من صحة بيانات كل مهمة قبل الحفظ.
+             function saveTasks(showSuccessNotification = false) { // إضافة خيار لعدم إظهار الإشعار دائمًا
+                // التحقق الأولي من أن 'tasks' هو مصفوفة
+                if (!Array.isArray(tasks)) {
+                    console.error('بيانات المهام غير صالحة: المتغير "tasks" ليس مصفوفة.');
+                    showNotification('خطأ داخلي: بيانات المهام غير صالحة.', 'error');
+                    return false; // فشل الحفظ
+                }
+
+                try {
+                    // إنشاء نسخة نظيفة ومتحقق منها من المهام للحفظ
+                    const tasksToSave = tasks.map(task => {
+                        // التحقق من أن 'task' هو كائن صالح
+                        if (typeof task !== 'object' || task === null) {
+                            console.warn('تم العثور على عنصر غير صالح في مصفوفة المهام، سيتم تخطيه:', task);
+                            return null; // تجاهل العناصر غير الصالحة
+                        }
+
+                        // تنظيف وتعيين قيم افتراضية لكل خاصية
+                        return {
+                            id: task.id || Date.now().toString() + Math.random().toString(16).slice(2),
+                            text: String(task.text || ''),
+                            completed: Boolean(task.completed),
+                            createdAt: task.createdAt || new Date().toISOString(),
+                            reminder: task.reminder || null,
+                            repeatInterval: ['daily', 'weekly', 'monthly'].includes(task.repeatInterval) ? task.repeatInterval : null,
+                            reminderSound: typeof task.reminderSound === 'string' ? task.reminderSound : 'bell',
+                            volume: Math.min(Math.max(parseFloat(task.volume) || 0.7, 0), 1),
+                            reminderMessage: String(task.reminderMessage || ''),
+                            reminderType: ['notification', 'sound', 'both'].includes(task.reminderType) ? task.reminderType : 'both',
+                            reminderPriority: ['normal', 'important', 'urgent'].includes(task.reminderPriority) ? task.reminderPriority : 'normal',
+                            priority: ['high', 'medium', 'low'].includes(task.priority) ? task.priority : 'low', // *** تغيير الافتراضي إلى 'low' ليتوافق مع النموذج ***
+                            color: typeof task.color === 'string' ? task.color : '#ffffff',
+                            tags: Array.isArray(task.tags) ? task.tags.filter(tag => typeof tag === 'string' && tag.trim() !== '') : [],
+                        };
+                    }).filter(task => task !== null); // إزالة أي عناصر تم تجاهلها
+
+                    // حفظ المصفوفة النظيفة في localStorage
+                    localStorage.setItem('tasks', JSON.stringify(tasksToSave));
+
+                    if (showSuccessNotification) {
+                        showNotification('تم حفظ المهام بنجاح.', 'success');
+                    }
+
+                    return true; // نجح الحفظ
+                } catch (error) {
+                    console.error('خطأ في حفظ المهام:', error);
+                    showNotification('حدث خطأ أثناء حفظ المهام.', 'error');
+                    return false; // فشل الحفظ
+                }
+            }
+
+            // =========================================
+            // دالة تحميل المهام
+            // =========================================
+             function loadTasks() {
+                try {
+                    const storedTasks = localStorage.getItem('tasks');
+                     // التحقق من صحة البيانات المحملة (خاصة التواريخ)
+                    tasks = storedTasks ? JSON.parse(storedTasks) : [];
+                     // قد تحتاج إلى تحويل التواريخ المخزنة كسلاسل نصية إلى كائنات Date إذا لزم الأمر في أماكن أخرى
+                } catch (error) {
+                    console.error('خطأ في تحميل المهام:', error);
+                    tasks = [];
+                    showNotification('حدث خطأ أثناء تحميل المهام. قد يتم فقدان بعض البيانات.', 'error');
+                }
+            }
+
+            // =========================================
+            // دالة إظهار الإشعارات (محسنة)
+            // =========================================
+             function showNotification(message, type = 'info') {
+                 // إزالة أي إشعار قديم قبل إظهار الجديد
+                 const existingNotification = document.querySelector('.notification');
+                 if (existingNotification) {
+                     existingNotification.remove();
+                 }
+
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                // إضافة أيقونة مناسبة
+                let iconClass = '';
+                if (type === 'success') iconClass = 'fas fa-check-circle';
+                else if (type === 'error') iconClass = 'fas fa-times-circle';
+                else if (type === 'info') iconClass = 'fas fa-info-circle';
+                else if (type === 'warning') iconClass = 'fas fa-exclamation-triangle';
+                 if (iconClass) {
+                    notification.innerHTML = `<i class="${iconClass}"></i> `;
+                 }
+                notification.appendChild(document.createTextNode(message));
+                document.body.appendChild(notification);
+
+                // تأخير بسيط لبدء التحريك بعد الإضافة للـ DOM
+                setTimeout(() => {
+                    notification.classList.add('show');
+                     // تعيين مؤقت للإزالة التلقائية
+                     setTimeout(() => {
+                         notification.classList.remove('show');
+                          // إزالة العنصر من DOM بعد انتهاء تحريك الاختفاء
+                          notification.addEventListener('transitionend', () => notification.remove(), { once: true });
+                          // Fallback removal
+                          setTimeout(() => notification.remove(), 500);
+                     }, 3000); // مدة بقاء الإشعار (3 ثواني)
+                }, 50); // تأخير 50 ملي ثانية
+            }
+
+            // =========================================
+            // دوال التذكير والأصوات (هيكل أساسي - تحتاج للتنفيذ)
+            // =========================================
+             function previewSound(soundId) {
+                const sound = NOTIFICATION_SOUNDS[soundId];
+                if (sound && sound.preview) {
+                    const audio = new Audio(sound.url);
+                    audio.volume = 0.5;
+                    audio.play().catch(error => console.error('خطأ في تشغيل صوت المعاينة:', error));
+                }
+            }
+             function getNotificationSound(soundId) {
+                return NOTIFICATION_SOUNDS[soundId] || NOTIFICATION_SOUNDS.bell;
+            }
+
+             // *** تحتاج للتنفيذ الكامل ***
+            function scheduleReminder(task) {
+                 if (!task || !task.reminder || task.completed) return; // لا تذكير للمهام المكتملة أو بدون وقت
+                 const reminderDate = new Date(task.reminder);
+                 const now = new Date();
+                 const timeDiff = reminderDate - now;
+
+                 if (timeDiff <= 0) return; // الوقت قد مضى
+
+                 // إلغاء أي مؤقت قديم لهذه المهمة
+                 if (activeReminders.has(task.id)) {
+                     clearTimeout(activeReminders.get(task.id));
+                     activeReminders.delete(task.id);
+                 }
+                 console.log(`جدولة تذكير للمهمة "${task.text}" بعد ${Math.round(timeDiff / 1000)} ثانية`); // للتصحيح
+
+                 const timerId = setTimeout(() => {
+                     console.log(`وقت التذكير للمهمة: ${task.text}`); // للتصحيح
+                     triggerReminder(task);
+
+                     if (task.repeatInterval) {
+                         rescheduleRepeatingReminder(task);
+                     } else {
+                         activeReminders.delete(task.id); // إزالة من المؤقتات النشطة
+                     }
+                     // إعادة العرض لتحديث حالة 'reminder-soon' أو 'reminder-past'
+                     renderTasks();
+                 }, timeDiff);
+
+                 activeReminders.set(task.id, timerId);
+            }
+             // *** تحتاج للتنفيذ الكامل ***
+             function triggerReminder(task) {
+                 if (!task || task.completed) return;
+
+                 const reminderMessage = task.reminderMessage || task.text;
+                 const reminderType = task.reminderType || 'both';
+                 const soundData = getNotificationSound(task.reminderSound);
+                 const volume = task.volume !== undefined ? task.volume : 0.7;
+
+                 console.log(`تشغيل التذكير: ${reminderMessage}`);
+
+                 // 1. تشغيل الصوت (إذا طُلب)
+                 if (reminderType === 'sound' || reminderType === 'both') {
+                     try {
+                         const audio = new Audio(soundData.url);
+                         audio.volume = volume;
+                         audio.play().catch(err => console.error("خطأ تشغيل صوت التذكير:", err));
+                     } catch (error) {
+                         console.error("خطأ في إنشاء أو تشغيل الصوت:", error);
+                     }
+                 }
+
+                 // 2. إظهار الإشعار (إذا طُلب)
+                 if (reminderType === 'notification' || reminderType === 'both') {
+                      // استخدام الإشعار المخصص داخل الصفحة
+                      // يمكنك تخصيص النوع (warning, error) بناءً على reminderPriority إذا أردت
+                     showNotification(`⏰ تذكير: ${reminderMessage}`, 'warning');
+                 }
+
+                 // 3. تحديث واجهة المهمة (اختياري - مثل تغيير لونها مؤقتًا)
+                 const taskElement = taskList.querySelector(`.task-item[data-id="${task.id}"]`);
+                 if (taskElement) {
+                     taskElement.classList.add('reminder-triggered'); // أضف كلاس للتنسيق
+                     setTimeout(() => taskElement.classList.remove('reminder-triggered'), 5000); // إزالة التمييز بعد فترة
+                 }
+            }
+             // *** تحتاج للتنفيذ الكامل ***
+            function rescheduleRepeatingReminder(task) {
+                 if (!task || !task.reminder || !task.repeatInterval || task.completed) return;
+
+                 let nextReminderDate = new Date(task.reminder);
+                 const now = new Date();
+
+                 do {
+                      switch (task.repeatInterval) {
+                          case 'daily': nextReminderDate.setDate(nextReminderDate.getDate() + 1); break;
+                          case 'weekly': nextReminderDate.setDate(nextReminderDate.getDate() + 7); break;
+                          case 'monthly': nextReminderDate.setMonth(nextReminderDate.getMonth() + 1); break;
+                          default: console.warn("فاصل تكرار غير معروف:", task.repeatInterval); return;
+                      }
+                 } while (nextReminderDate <= now);
+
+                 console.log(`إعادة جدولة التذكير المتكرر للمهمة "${task.text}" إلى ${nextReminderDate}`);
+                 task.reminder = nextReminderDate.toISOString();
+                 saveTasks(); // حفظ وقت التذكير الجديد
+                 scheduleReminder(task); // جدولة المؤقت الجديد
+            }
+            // *** تحتاج للتنفيذ الكامل ***
+             function clearAndRescheduleAllReminders() {
+                 console.log("إلغاء وإعادة جدولة جميع التذكيرات...");
+                 activeReminders.forEach(timerId => clearTimeout(timerId));
+                 activeReminders.clear();
+
+                 tasks.forEach(task => {
+                     if (!task.completed && task.reminder) {
+                         scheduleReminder(task); // إعادة الجدولة فقط للنشطة والتي لها تذكير
+                     }
+                 });
+             }
+
+            // =========================================
+            // دالة إنشاء عنصر المهمة (محسنة)
+            // =========================================
+            function createTaskElement(task) {
+                if (!taskTemplate) {
+                    console.error("قالب المهمة #task-template غير موجود!");
+                    return document.createElement('li'); // عنصر احتياطي
+                }
+                const clone = document.importNode(taskTemplate.content, true);
+                const taskItem = clone.querySelector('.task-item');
+                const taskContent = clone.querySelector('.task-content'); // حاوية المحتوى
+                const textWrapper = clone.querySelector('.task-text-wrapper');
+                const taskTextSpan = clone.querySelector('.task-text');
+                 const taskDetailsDiv = clone.querySelector('.task-details'); // حاوية التفاصيل
+                const tagsContainer = clone.querySelector('.task-tags');
+                const checkbox = clone.querySelector('.task-checkbox');
+                const deleteBtn = clone.querySelector('.delete-btn');
+                const editBtn = clone.querySelector('.edit-btn');
+                const reminderBtn = clone.querySelector('.reminder-btn');
+
+                if (!taskItem || !taskContent || !textWrapper || !taskTextSpan || !taskDetailsDiv || !tagsContainer || !checkbox || !deleteBtn || !editBtn || !reminderBtn) {
+                     console.error("عنصر أو أكثر مفقود في #task-template!");
+                     return document.createElement('li'); // عنصر احتياطي
+                 }
+
+
+                taskItem.dataset.id = task.id;
+                taskItem.style.backgroundColor = task.color || 'transparent'; // استخدام اللون أو خلفية شفافة
+
+                // تطبيق فئة الأولوية
+                taskItem.classList.remove('priority-low', 'priority-medium', 'priority-high'); // إزالة الفئات القديمة أولاً
+                taskItem.classList.add(`priority-${task.priority || 'low'}`); // إضافة الفئة الصحيحة
+
+                // حالة الإكمال
+                taskItem.classList.toggle('task-completed', task.completed);
+                checkbox.checked = task.completed;
+                 checkbox.setAttribute('aria-checked', task.completed); // Accessibility
+
+                // عرض النص
+                taskTextSpan.textContent = task.text;
+
+                 // مسح التفاصيل القديمة (الوسوم والتذكير) قبل الإضافة
+                 tagsContainer.innerHTML = '';
+                 const existingReminder = taskDetailsDiv.querySelector('.reminder-time');
+                 if (existingReminder) existingReminder.remove();
+
+                // عرض الوسوم
+                if (task.tags && task.tags.length > 0) {
+                    task.tags.forEach(tag => {
+                        const tagElement = document.createElement('span');
+                        tagElement.className = 'task-tag';
+                        tagElement.textContent = tag.trim();
+                        tagsContainer.appendChild(tagElement);
+                    });
+                     taskDetailsDiv.style.display = 'flex'; // إظهار حاوية التفاصيل
+                } else {
+                     // لا تفعل شيئاً هنا، ستكون tagsContainer فارغة
+                }
+
+                // عرض وقت التذكير (إذا وجد)
+                let hasVisibleReminder = false;
+                if (task.reminder) {
+                     try {
+                        const reminderDate = new Date(task.reminder);
+                        if (!isNaN(reminderDate)) {
+                             const reminderSpan = document.createElement('span');
+                             reminderSpan.className = 'reminder-time';
+                             reminderSpan.innerHTML = `<i class="far fa-clock"></i> `; // أيقونة الساعة
+                             reminderSpan.appendChild(document.createTextNode(
+                                 reminderDate.toLocaleString('ar-SA', { dateStyle: 'short', timeStyle: 'short' })
+                             ));
+
+                             const now = new Date();
+                             const timeDiff = reminderDate - now;
+
+                            if (!task.completed) {
+                                 if (timeDiff > 0 && timeDiff < 24 * 60 * 60 * 1000) {
+                                     reminderSpan.classList.add('reminder-soon');
+                                     reminderSpan.title = 'التذكير قريب!';
+                                 } else if (timeDiff <= 0) {
+                                     reminderSpan.classList.add('reminder-past');
+                                     reminderSpan.title = 'فات وقت التذكير!';
+                                 }
+                             } else {
+                                 reminderSpan.classList.add('reminder-past'); // عرض التذكير كفائت إذا كانت المهمة مكتملة
+                             }
+
+
+                             // عرض نص التكرار
+                             if (task.repeatInterval) {
+                                 const repeatText = getRepeatText(task.repeatInterval);
+                                 if (repeatText) {
+                                     const repeatSpan = document.createElement('span');
+                                     repeatSpan.className = 'reminder-repeat';
+                                     repeatSpan.textContent = `( ${repeatText} )`;
+                                     reminderSpan.appendChild(repeatSpan);
+                                 }
+                             }
+
+                             taskDetailsDiv.appendChild(reminderSpan); // إضافة التذكير إلى حاوية التفاصيل
+                             hasVisibleReminder = true;
+                             taskDetailsDiv.style.display = 'flex'; // إظهار حاوية التفاصيل
+                             reminderBtn.classList.add('active'); // تمييز زر التذكير
+                        } else {
+                            console.warn("تاريخ تذكير غير صالح:", task.reminder, "للمهمة:", task.id);
+                        }
+                     } catch (e) {
+                         console.error("خطأ في معالجة تاريخ التذكير:", e);
+                     }
+                }
+
+                // إخفاء حاوية التفاصيل إذا لم يكن هناك وسوم أو تذكير
+                if (!task.tags?.length && !hasVisibleReminder) {
+                     taskDetailsDiv.style.display = 'none';
+                 }
+
+
+                // إضافة مستمعي الأحداث
+                checkbox.addEventListener('change', () => toggleTask(task.id));
+                deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteTask(task.id); });
+                editBtn.addEventListener('click', (e) => { e.stopPropagation(); editTask(task.id); });
+                reminderBtn.addEventListener('click', (e) => { e.stopPropagation(); manageReminders(task.id); });
+
+                return taskItem;
+            }
+
+
+            // =========================================
+            // دالة عرض المهام (محسنة)
+            // =========================================
+             function renderTasks() {
+                 if (!taskList) return;
+                 console.log("Rendering tasks..."); // للتصحيح
+
+                 const currentScroll = taskList.scrollTop; // حفظ موضع التمرير
+
+                 taskList.innerHTML = ''; // مسح القائمة
+                 const filteredResult = filterAndGroupTasks(tasks);
+
+                 let taskCount = 0;
+
+                 if (Array.isArray(filteredResult)) { // لا يوجد تجميع
+                     const sortedTasks = sortTasks(filteredResult);
+                     taskCount = sortedTasks.length;
+                     if (taskCount === 0) {
+                         taskList.innerHTML = '<p class="empty-list-message">لا توجد مهام تطابق البحث أو الفلتر.</p>';
+                     } else {
+                         sortedTasks.forEach(task => taskList.appendChild(createTaskElement(task)));
+                     }
+                 } else { // يوجد تجميع
+                     const sortedGroupNames = Object.keys(filteredResult).sort((a, b) => {
+                          if (groupSelect.value === 'priority') {
+                              const priorityOrder = { 'عالي': 3, 'متوسط': 2, 'منخفض': 1, 'بدون أولوية': 0 };
+                              return (priorityOrder[b] || 0) - (priorityOrder[a] || 0);
+                          } else if (groupSelect.value === 'date') {
+                              // محاولة تحويل التاريخ للفرز (قد يكون معقدًا)
+                               try { return new Date(b) - new Date(a); } catch { return a.localeCompare(b, 'ar'); }
+                          }
+                          return a.localeCompare(b, 'ar');
+                     });
+
+                     if (sortedGroupNames.length === 0) {
+                          taskList.innerHTML = '<p class="empty-list-message">لا توجد مهام لعرضها في المجموعات.</p>';
+                     } else {
+                         sortedGroupNames.forEach(groupName => {
+                             const groupTasks = filteredResult[groupName];
+                              taskCount += groupTasks.length; // زيادة العداد الإجمالي
+
+                             const groupContainer = document.createElement('div');
+                             groupContainer.className = 'task-group'; // الكلاس الأساسي
+
+                             const groupHeader = document.createElement('div');
+                             groupHeader.className = 'task-group-header';
+                             groupHeader.innerHTML = `
+                                 <h3>${groupName || 'غير مصنف'}</h3>
+                                 <span class="task-count">${groupTasks.length} ${groupTasks.length === 1 ? 'مهمة' : 'مهام'}</span>
+                             `;
+                             groupHeader.addEventListener('click', () => {
+                                 groupContainer.classList.toggle('collapsed');
+                                 // حفظ حالة الطي في localStorage (اختياري)
+                                 // saveGroupCollapseState(groupName, groupContainer.classList.contains('collapsed'));
+                             });
+                             // استعادة حالة الطي (اختياري)
+                             // if (getGroupCollapseState(groupName)) {
+                             //     groupContainer.classList.add('collapsed');
+                             // }
+
+                             groupContainer.appendChild(groupHeader);
+
+                             const groupTaskList = document.createElement('ul');
+                             groupTaskList.className = 'task-group-list';
+                             const sortedGroupTasks = sortTasks(groupTasks);
+                             sortedGroupTasks.forEach(task => groupTaskList.appendChild(createTaskElement(task)));
+
+                             groupContainer.appendChild(groupTaskList);
+                             taskList.appendChild(groupContainer);
+                         });
+                     }
+                 }
+                  console.log(`Rendered ${taskCount} tasks.`); // للتصحيح
+
+                 // إعادة جدولة التذكيرات بعد العرض
+                 clearAndRescheduleAllReminders();
+
+                 taskList.scrollTop = currentScroll; // استعادة موضع التمرير
+             }
+
+
+            // =========================================
+            // دوال الفرز والفلترة والتجميع (محسنة)
+            // =========================================
+            function filterAndGroupTasks(tasksToProcess) {
+                const filterValue = filterSelect.value;
+                const searchText = searchInput.value.toLowerCase().trim();
+                const priorityFilter = filterPrioritySelect.value; // استخدام الفلتر المخصص
+                const groupValue = groupSelect.value;
+
+                // الفلترة
+                const filteredTasks = tasksToProcess.filter(task => {
+                    const matchesFilter = filterValue === 'all' ||
+                        (filterValue === 'active' && !task.completed) ||
+                        (filterValue === 'completed' && task.completed) ||
+                        (filterValue === 'withReminder' && task.reminder && !task.completed && new Date(task.reminder) > new Date());
+
+                    const matchesSearch = searchText === '' ||
+                        (task.text && task.text.toLowerCase().includes(searchText)) ||
+                        (task.tags && task.tags.some(tag => tag.toLowerCase().includes(searchText))) ||
+                        (task.priority && task.priority.toLowerCase().includes(searchText)) ||
+                        (task.reminder && new Date(task.reminder).toLocaleString('ar-SA').includes(searchText));
+
+                    const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
+
+                    return matchesFilter && matchesSearch && matchesPriority;
+                });
+
+                // التجميع
+                if (groupValue !== 'none') {
+                    const groupedTasks = {};
+                     const priorityMap = { high: 'عالي', medium: 'متوسط', low: 'منخفض' }; // للترجمة
+
+                    filteredTasks.forEach(task => {
+                        let groupKeys = [];
+                        switch (groupValue) {
+                            case 'priority': groupKeys.push(priorityMap[task.priority] || 'بدون أولوية'); break;
+                            case 'date': groupKeys.push(task.createdAt ? new Date(task.createdAt).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }) : 'بدون تاريخ'); break;
+                            case 'tags':
+                                if (task.tags && task.tags.length > 0) { task.tags.forEach(tag => groupKeys.push(tag.trim() || 'وسم فارغ')); }
+                                else { groupKeys.push('بدون وسوم'); }
+                                break;
+                            case 'reminder':
+                                if (task.reminder && !task.completed) { groupKeys.push(new Date(task.reminder) > new Date() ? 'تذكير نشط' : 'تذكير فائت'); }
+                                else { groupKeys.push('بدون تذكير أو مكتمل'); }
+                                break;
+                             case 'status': groupKeys.push(task.completed ? 'مكتملة' : 'نشطة'); break;
+                            default: groupKeys.push('غير مصنف');
+                        }
+                        groupKeys.forEach(key => {
+                            if (!groupedTasks[key]) groupedTasks[key] = [];
+                            groupedTasks[key].push(task);
+                        });
+                    });
+                    return groupedTasks;
+                }
+                return filteredTasks;
+            }
+
+             function sortTasks(tasksToSort) {
+                 const sortValue = sortSelect.value;
+                 const priorityOrder = { high: 3, medium: 2, low: 1 };
+
+                 return tasksToSort.slice().sort((a, b) => {
+                     switch (sortValue) {
+                         case 'date': return (b.createdAt ? new Date(b.createdAt) : 0) - (a.createdAt ? new Date(a.createdAt) : 0);
+                         case 'priority': return (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
+                         case 'alphabetical': return (a.text || '').localeCompare(b.text || '', 'ar');
+                         case 'reminder':
+                             const reminderTimeA = a.reminder && !a.completed ? new Date(a.reminder).getTime() : Infinity;
+                             const reminderTimeB = b.reminder && !b.completed ? new Date(b.reminder).getTime() : Infinity;
+                             const now = Date.now();
+                             const effectiveTimeA = reminderTimeA < now ? Infinity : reminderTimeA;
+                             const effectiveTimeB = reminderTimeB < now ? Infinity : reminderTimeB;
+                             if (effectiveTimeA === Infinity && effectiveTimeB === Infinity) return 0;
+                             return effectiveTimeA - effectiveTimeB;
+                         case 'status': return a.completed - b.completed;
+                         default: return 0;
+                     }
+                 });
+             }
+
+            // =========================================
+            // دوال معالجة المهام (إضافة، تعديل، حذف، تبديل)
+            // =========================================
+            function toggleTask(taskId) {
+                const task = tasks.find(t => String(t.id) === String(taskId));
+                if (task) {
+                    task.completed = !task.completed;
+                    saveTasks(); // لا داعي لإشعار النجاح هنا
+                    renderTasks();
+                     // إظهار إشعار بالإكمال أو إلغاء الإكمال
+                     showNotification(task.completed ? 'تم إكمال المهمة!' : 'تم إعادة تنشيط المهمة.', 'info');
+                }
+            }
+
+             function showConfirmationDialog(message, onConfirm) {
+                // *** يمكنك استبدال هذا بمربع حوار مخصص أكثر جمالاً ***
+                if (confirm(message)) {
+                    onConfirm();
+                }
+             }
+
+            function deleteTask(taskId) {
+                 showConfirmationDialog('هل أنت متأكد من حذف هذه المهمة؟ لا يمكن التراجع عن هذا الإجراء.', () => {
+                     // إلغاء التذكير النشط
+                     if (activeReminders.has(String(taskId))) {
+                         clearTimeout(activeReminders.get(String(taskId)));
+                         activeReminders.delete(String(taskId));
+                     }
+                     tasks = tasks.filter(t => String(t.id) !== String(taskId));
+                     saveTasks(); // لا داعي لإشعار النجاح
+                     renderTasks();
+                     showNotification('تم حذف المهمة.', 'success'); // إشعار بالحذف
+                 });
+            }
+
+            function editTask(taskId) {
+                const task = tasks.find(t => String(t.id) === String(taskId));
+                if (!task) {
+                    showNotification('لم يتم العثور على المهمة للتعديل.', 'error');
+                    return;
+                }
+                editingTaskId = task.id;
+                taskInput.value = task.text;
+                priorityInput.value = task.priority || 'low';
+                colorInput.value = task.color || '#ffffff';
+                tagsInput.value = task.tags ? task.tags.join(', ') : '';
+                // لا نملأ حقل التذكير الرئيسي
+
+                addTaskBtn.innerHTML = '<i class="fas fa-save"></i> تحديث'; // تغيير الأيقونة والنص
+                addTaskBtn.classList.add('edit-mode');
+                cancelEditBtn.style.display = 'inline-block'; // إظهار زر إلغاء التعديل
+                taskInput.focus();
+                taskForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+             function cancelEdit() {
+                 editingTaskId = null;
+                 taskForm.reset(); // إعادة تعيين النموذج
+                 colorInput.value = '#ffffff'; // إعادة تعيين اللون
+                 priorityInput.value = 'low'; // إعادة تعيين الأولوية للافتراضي 'low'
+                 addTaskBtn.innerHTML = '<i class="fas fa-plus"></i> إضافة'; // استعادة الزر الأصلي
+                 addTaskBtn.classList.remove('edit-mode');
+                 cancelEditBtn.style.display = 'none'; // إخفاء زر الإلغاء
+             }
+
+
+            // =========================================
+            // دالة إدارة التذكيرات (النسخة المبسطة الحالية + تحسينات)
+            // =========================================
+            function manageReminders(taskId) {
+                 const task = tasks.find(t => String(t.id) === String(taskId));
+                 if (!task) {
+                     showNotification('لم يتم العثور على المهمة.', 'error');
+                     return;
+                 }
+
+                 // --- إنشاء وعرض مربع الحوار (محسن) ---
+                 const dialogOverlay = document.createElement('div');
+                 dialogOverlay.className = 'dialog-overlay';
+
+                 const dialogContent = document.createElement('div');
+                 dialogContent.className = 'reminder-dialog-content';
+                 // *** ملاحظة: هذا هو مربع الحوار البسيط. إذا أردت الميزات المتقدمة (صوت، حجم...)
+                 // *** يجب نسخ HTML والأكواد من نسخة JS السابقة ودمجها هنا.
+                 dialogContent.innerHTML = `
+                     <h3>إدارة التذكير للمهمة:</h3>
+                     <p style="text-align:center; margin-bottom:15px; font-weight:500;">"${task.text}"</p>
+                     <div class="reminder-options">
+                         <div class="reminder-option">
+                             <label for="dialog-reminder-time">وقت التذكير:</label>
+                             <input type="datetime-local" id="dialog-reminder-time" value="${task.reminder ? task.reminder.substring(0, 16) : ''}">
+                         </div>
+                         <div class="reminder-option">
+                             <label for="dialog-reminder-repeat">تكرار التذكير:</label>
+                             <select id="dialog-reminder-repeat">
+                                 <option value="">بدون تكرار</option>
+                                 <option value="daily" ${task.repeatInterval === 'daily' ? 'selected' : ''}>يومياً</option>
+                                 <option value="weekly" ${task.repeatInterval === 'weekly' ? 'selected' : ''}>أسبوعياً</option>
+                                 <option value="monthly" ${task.repeatInterval === 'monthly' ? 'selected' : ''}>شهرياً</option>
+                             </select>
+                         </div>
+                         <div class="reminder-option">
+                             <label for="dialog-reminder-type">نوع التنبيه:</label>
+                             <select id="dialog-reminder-type">
+                                 <option value="both" ${!task.reminderType || task.reminderType === 'both' ? 'selected' : ''}>إشعار وصوت</option>
+                                 <option value="notification" ${task.reminderType === 'notification' ? 'selected' : ''}>إشعار فقط</option>
+                                 <option value="sound" ${task.reminderType === 'sound' ? 'selected' : ''}>صوت فقط</option>
+                             </select>
+                         </div>
+                     </div>
+                     <div class="dialog-actions">
+                         <button type="button" id="clear-reminder-btn" class="btn-danger">مسح التذكير</button>
+                         <div> <button type="button" id="cancel-reminder-btn" class="btn-secondary">إلغاء</button>
+                            <button type="button" id="save-reminder-btn" class="btn-primary">حفظ</button>
+                        </div>
+                     </div>
+                 `;
+
+                 dialogOverlay.appendChild(dialogContent);
+                 document.body.appendChild(dialogOverlay);
+
+                 // إظهار مع تحريك
+                 setTimeout(() => dialogOverlay.classList.add('show'), 10);
+
+
+                 // إضافة مستمعي الأحداث لعناصر مربع الحوار
+                 const saveBtn = dialogContent.querySelector('#save-reminder-btn');
+                 const cancelBtn = dialogContent.querySelector('#cancel-reminder-btn');
+                 const clearBtn = dialogContent.querySelector('#clear-reminder-btn');
+                 const reminderTimeInput = dialogContent.querySelector('#dialog-reminder-time');
+                 const reminderRepeatSelect = dialogContent.querySelector('#dialog-reminder-repeat');
+                 const reminderTypeSelect = dialogContent.querySelector('#dialog-reminder-type');
+
+                 const closeDialog = () => {
+                    dialogOverlay.classList.remove('show');
+                    dialogOverlay.addEventListener('transitionend', () => dialogOverlay.remove(), { once: true });
+                    setTimeout(() => dialogOverlay.remove(), 350); // Fallback removal
+                 };
+
+                 cancelBtn.addEventListener('click', closeDialog);
+                 dialogOverlay.addEventListener('click', (e) => {
+                     if (e.target === dialogOverlay) closeDialog();
+                 });
+
+                 clearBtn.addEventListener('click', () => {
+                      showConfirmationDialog('هل أنت متأكد من مسح إعدادات التذكير لهذه المهمة؟', () => {
+                          task.reminder = null;
+                          task.repeatInterval = null;
+                          task.reminderType = null; // أعد تعيين النوع أيضاً
+                          // أعد تعيين الخصائص الأخرى إذا كانت موجودة في النسخة المتقدمة
+                          // task.reminderSound = null; task.volume = null; task.reminderMessage = null;
+
+                          if (activeReminders.has(task.id)) {
+                              clearTimeout(activeReminders.get(task.id));
+                              activeReminders.delete(task.id);
+                          }
+                          saveTasks();
+                          renderTasks();
+                          closeDialog();
+                          showNotification('تم مسح التذكير.', 'info');
+                      });
+                 });
+
+                 saveBtn.addEventListener('click', () => {
+                     const newReminderTime = reminderTimeInput.value;
+                     const newRepeatInterval = reminderRepeatSelect.value;
+                     const newReminderType = reminderTypeSelect.value;
+
+                     if (newReminderTime) {
+                         const reminderDate = new Date(newReminderTime);
+                         if (isNaN(reminderDate)) {
+                             showNotification('صيغة التاريخ أو الوقت غير صالحة.', 'error');
+                             return;
+                         }
+                         if (reminderDate <= new Date()) {
+                             showNotification('لا يمكن تعيين تذكير لوقت قد مضى.', 'warning');
+                            // يمكنك السماح به إذا أراد المستخدم تذكيرًا فائتًا عمدًا
+                            // لكن التحذير جيد
+                         }
+
+                         task.reminder = reminderDate.toISOString(); // حفظ بصيغة ISO دائماً
+                         task.repeatInterval = newRepeatInterval || null;
+                         task.reminderType = newReminderType;
+                         // حفظ الخصائص الأخرى هنا إذا كانت موجودة في النسخة المتقدمة
+
+                         saveTasks();
+                         renderTasks(); // ستقوم بإعادة الجدولة
+                         closeDialog();
+                         showNotification('تم حفظ التذكير بنجاح.', 'success');
+                     } else {
+                         // إذا تم مسح الوقت، اعتبره مسحًا للتذكير
+                         clearBtn.click(); // محاكاة النقر على زر المسح
+                     }
+                 });
+            }
+
+            // =========================================
+            // معالج حدث إرسال النموذج (إضافة / تحديث) - مكتمل
+            // =========================================
+            taskForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const taskText = taskInput.value.trim();
+                if (!taskText) {
+                    showNotification('الرجاء إدخال نص للمهمة.', 'warning');
+                    taskInput.focus();
+                    return;
+                }
+
+                const tags = tagsInput.value.split(',')
+                             .map(tag => tag.trim())
+                             .filter(tag => tag && tag.length > 0); // التأكد من أن الوسم ليس فارغًا
+
+                // جمع بيانات المهمة الأساسية من النموذج
+                const taskData = {
+                    text: taskText,
+                    priority: priorityInput.value,
+                    color: colorInput.value,
+                    tags: tags,
+                    // reminder: reminderInput.value || null, // التذكير يدار الآن عبر manageReminders
+                };
+
+                if (editingTaskId) {
+                    // --- وضع التحديث ---
+                    const taskIndex = tasks.findIndex(t => String(t.id) === String(editingTaskId));
+                    if (taskIndex !== -1) {
+                         // دمج البيانات الجديدة مع الحفاظ على البيانات التي لا تأتي من النموذج الرئيسي
+                         // مثل completed, createdAt, reminder settings
+                         tasks[taskIndex] = {
+                             ...tasks[taskIndex], // الاحتفاظ بالبيانات القديمة (ID, completed, createdAt, reminder...)
+                             ...taskData // الكتابة فوقها بالبيانات الجديدة من النموذج
+                         };
+                         saveTasks(true); // إظهار إشعار النجاح عند التحديث
+                         showNotification('تم تحديث المهمة بنجاح.', 'success'); // إشعار إضافي (يمكن دمجها مع saveTasks)
+                    } else {
+                         console.error("خطأ: لم يتم العثور على المهمة للتحديث ID:", editingTaskId);
+                         showNotification('حدث خطأ أثناء محاولة تحديث المهمة.', 'error');
+                    }
+                    cancelEdit(); // الخروج من وضع التعديل وإعادة تعيين النموذج
+
+                } else {
+                    // --- وضع الإضافة ---
+                    const newTask = {
+                        id: Date.now().toString() + Math.random().toString(16).slice(2), // ID فريد
+                        ...taskData, // بيانات من النموذج
+                        completed: false, // القيمة الافتراضية
+                        createdAt: new Date().toISOString(), // تاريخ الإنشاء
+                        // تعيين قيم افتراضية للتذكير هنا إذا أردت أن يكون لها قيم أولية
+                         reminder: null,
+                         repeatInterval: null,
+                         reminderSound: 'bell',
+                         volume: 0.7,
+                         reminderMessage: '',
+                         reminderType: 'both',
+                         reminderPriority: 'normal'
+                    };
+                    tasks.push(newTask);
+                    saveTasks(true); // إظهار إشعار النجاح عند الإضافة
+                    taskForm.reset(); // تفريغ النموذج الرئيسي
+                    colorInput.value = '#ffffff'; // إعادة اللون الافتراضي
+                    priorityInput.value = 'low'; // إعادة الأولوية الافتراضية
+                    taskInput.focus(); // إعادة التركيز لإضافة المزيد
+                }
+
+                renderTasks(); // إعادة عرض القائمة في كلتا الحالتين
+            });
+
+             // زر إلغاء التعديل
+             cancelEditBtn.addEventListener('click', cancelEdit);
+
+            // =========================================
+            // دوال الاستيراد والتصدير (من النسخة السابقة)
+            // =========================================
+            function exportTasks() {
+                 if (tasks.length === 0) {
+                     showNotification("لا توجد مهام لتصديرها.", "info");
+                     return;
+                 }
+                 try {
+                     const tasksJson = JSON.stringify(tasks, null, 2);
+                     const blob = new Blob([tasksJson], { type: 'application/json;charset=utf-8' }); // تحديد الترميز
+                     const url = URL.createObjectURL(blob);
+                     const a = document.createElement('a');
+                     a.style.display = 'none';
+                     a.href = url;
+                     const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+                     a.download = `tasks_${timestamp}.json`;
+                     document.body.appendChild(a);
+                     a.click();
+                     window.URL.revokeObjectURL(url);
+                     a.remove();
+                     showNotification("تم تصدير المهام بنجاح.", "success");
+                 } catch (error) {
+                     console.error("خطأ في تصدير المهام:", error);
+                     showNotification("حدث خطأ أثناء تصدير المهام.", "error");
+                 }
+            }
+
+             function importTasks(event) {
+                 const file = event.target.files[0];
+                 if (!file) return;
+                 if (file.type !== 'application/json') {
+                     showNotification("الرجاء تحديد ملف JSON صالح.", "error");
+                     importInput.value = ''; // إعادة تعيين للسماح بنفس الملف مرة أخرى
+                     return;
+                 }
+
+                 const reader = new FileReader();
+                 reader.onload = function(e) {
+                     try {
+                         const importedData = JSON.parse(e.target.result);
+                         if (!Array.isArray(importedData)) {
+                             throw new Error("الملف لا يحتوي على مصفوفة مهام.");
+                         }
+                         // *** يمكنك إضافة تحقق أكثر تفصيلاً من بنية البيانات هنا ***
+
+                         showConfirmationDialog(`سيتم استبدال المهام الحالية (${tasks.length}) بـ ${importedData.length} مهمة مستوردة. هل أنت متأكد؟`, () => {
+                             tasks = importedData;
+                             // التأكد من إعادة جدولة التذكيرات بعد الاستيراد
+                             saveTasks(); // حفظ المهام الجديدة
+                             renderTasks(); // العرض سيقوم بإعادة الجدولة
+                             showNotification(`تم استيراد ${tasks.length} مهمة بنجاح.`, "success");
+                         });
+
+                     } catch (error) {
+                         console.error("خطأ في استيراد المهام:", error);
+                         showNotification(`خطأ استيراد: ${error.message}`, "error");
+                     } finally {
+                         importInput.value = ''; // إعادة التعيين دائمًا
+                     }
+                 };
+                 reader.onerror = function() {
+                     showNotification("حدث خطأ أثناء قراءة الملف.", "error");
+                     importInput.value = '';
+                 };
+                 reader.readAsText(file);
+            }
+
+            // =========================================
+            // ربط الأحداث للعناصر الأخرى
+            // =========================================
+            searchInput.addEventListener('input', renderTasks); // استخدام input للاستجابة الفورية
+            filterSelect.addEventListener('change', renderTasks);
+            sortSelect.addEventListener('change', renderTasks);
+            groupSelect.addEventListener('change', renderTasks);
+            if (filterPrioritySelect) filterPrioritySelect.addEventListener('change', renderTasks);
+
+            if (exportBtn) exportBtn.addEventListener('click', exportTasks);
+            if (importBtn) importBtn.addEventListener('click', () => importInput.click()); // فتح نافذة الملف عند النقر على الزر
+            if (importInput) importInput.addEventListener('change', importTasks);
+
+            // =========================================
+            // التنفيذ الأولي عند تحميل الصفحة
+            // =========================================
+            loadTasks(); // تحميل المهام
+            renderTasks(); // عرضها (وهذا سيقوم بجدولة التذكيرات الأولية)
+
+        }); // نهاية DOMContentLoaded
+    </script>
+
+</body>
+</html>
