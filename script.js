@@ -37,15 +37,25 @@ document.addEventListener('DOMContentLoaded', function() {
     function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
-        notification.textContent = message;
+        notification.innerHTML = `
+            <i class="notification-icon ${type}"></i>
+            <span class="notification-message">${message}</span>
+            <button class="notification-close">×</button>
+        `;
         document.body.appendChild(notification);
+        
+        const closeBtn = notification.querySelector('.notification-close');
+        closeBtn.addEventListener('click', () => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        });
         
         setTimeout(() => {
             notification.classList.add('show');
             setTimeout(() => {
                 notification.classList.remove('show');
                 setTimeout(() => notification.remove(), 300);
-            }, 2000);
+            }, 3000);
         }, 100);
     }
 
@@ -60,6 +70,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const editBtn = clone.querySelector('.edit-btn');
         const reminderBtn = clone.querySelector('.reminder-btn');
         const tagsContainer = clone.querySelector('.task-tags');
+        const progressBar = document.createElement('div');
+        progressBar.className = 'task-progress-bar';
+        taskItem.appendChild(progressBar);
 
         taskItem.dataset.id = task.id;
         taskText.textContent = task.text;
